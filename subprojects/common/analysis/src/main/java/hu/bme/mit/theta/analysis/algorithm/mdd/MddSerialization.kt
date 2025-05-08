@@ -1,13 +1,3 @@
-import hu.bme.mit.delta.java.mdd.GraphvizSerializer
-import hu.bme.mit.delta.java.mdd.JavaMddFactory
-import hu.bme.mit.delta.java.mdd.*
-import hu.bme.mit.delta.mdd.LatticeDefinition
-import hu.bme.mit.delta.mdd.MddBuilder
-import java.util.*
-import java.util.List
-import java.io.File
-
-
 /*
  *  Copyright 2025 Budapest University of Technology and Economics
  *
@@ -23,6 +13,15 @@ import java.io.File
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
+package hu.bme.mit.theta.analysis.algorithm.mdd
+
+import hu.bme.mit.delta.java.mdd.MddHandle
+import hu.bme.mit.delta.java.mdd.MddVariable
+import hu.bme.mit.theta.analysis.algorithm.mdd.expressionnode.LitExprConverter
+import hu.bme.mit.theta.core.decl.Decl
+import java.io.File
+import java.util.*
 
 class Assignment {
     var mddVariable: MddVariable
@@ -87,50 +86,22 @@ fun escapeCsv(value: String): String {
     return if (needsQuoting) "\"$escaped\"" else escaped
 }
 
+@JvmOverloads
 fun serialyzeValuations(valuations: Set<Map<MddVariable, Int>>, fileName: String = "output.csv") {
     if (valuations.isEmpty()) return
 
-    val variables = valuations.first().keys.sortedBy { it.getTraceInfo().toString() }
+    val variables = valuations.first().keys.sortedBy { (it.getTraceInfo() as Decl<*>).name }
 
     val builder = StringBuilder()
 
-    builder.append(variables.joinToString(",") { escapeCsv(it.traceInfo.toString()) })
+    builder.append(variables.joinToString(",") { escapeCsv((it.traceInfo as Decl<*>).name) })
     builder.append("\n")
 
     for (valuation in valuations) {
-        val row = variables.map { valuation[it]?.toString() ?: "" }
+        val row = variables.map { LitExprConverter.toLitExpr(valuation[it]!!, (it.getTraceInfo() as Decl<*>).type)?.toString() ?: "" }
         builder.append(row.joinToString(",") { escapeCsv(it) })
         builder.append("\n")
     }
 
     File(fileName).writeText(builder.toString())
-}
-fun main() {
-
-    val mddGraph: MddGraph<Boolean> = JavaMddFactory.getDefault().createMddGraph(LatticeDefinition.forSets())
-    val variableOrder: MddVariableOrder = JavaMddFactory.getDefault().createMddVariableOrder(mddGraph)
-
-    // MddVariableDescriptor.create(traceInfo, domainSize) - domainSize is 0 if unbounded
-    val z: MddVariable = variableOrder.createOnTop(MddVariableDescriptor.create("z", 0))
-    val y: MddVariable = variableOrder.createOnTop(MddVariableDescriptor.create("y", 0))
-    val x: MddVariable = variableOrder.createOnTop(MddVariableDescriptor.create("x", 0))
-
-    val z_y_x: MddSignature = variableOrder.defaultSetSignature
-
-    val node1 = MddBuilder<Boolean>(z_y_x).build(List.of(
-        arrayOf(1, 0, 4),
-        arrayOf(2, 0, 4),
-        arrayOf(4, 0, 6),
-        arrayOf(4, 0, 0),
-        arrayOf(4, 0, 4)
-    ), true) as MddHandle
-
-    val valuations = collect(node1)
-    println(valuations)
-    serialyzeValuations(valuations)
-
-    // Generate GraphViz DOT representation (reduced = false)...
-    println(GraphvizSerializer.serialize(node1 as MddHandle, false))
-
-
 }
