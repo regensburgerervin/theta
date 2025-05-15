@@ -4,10 +4,8 @@ import hu.bme.mit.delta.java.mdd.*
 import hu.bme.mit.delta.mdd.LatticeDefinition
 import hu.bme.mit.delta.mdd.MddBuilder
 import hu.bme.mit.theta.analysis.algorithm.mdd.collect
-import hu.bme.mit.theta.analysis.algorithm.mdd.serialyzeValuations
-import java.util.*
+import hu.bme.mit.theta.analysis.algorithm.mdd.serializeValuations
 import java.util.List
-import java.io.File
 
 
 /*
@@ -47,7 +45,7 @@ fun main() {
 
     val valuations = collect(node1)
     println(valuations)
-    serialyzeValuations(valuations)
+    serializeValuations(valuations)
 
     // Generate GraphViz DOT representation (reduced = false)...
     println(GraphvizSerializer.serialize(node1 as MddHandle, false))

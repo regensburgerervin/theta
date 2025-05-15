@@ -72,7 +72,7 @@ public class XstsMddCheckerTest {
             status = checker.check(null);
             var statespace = status.getProof().getMdd();
             var valuations = MddSerializationKt.collect(statespace);
-            MddSerializationKt.serialyzeValuations(valuations);
+            MddSerializationKt.serializeValuations(valuations);
         }
 
         if (safe) {

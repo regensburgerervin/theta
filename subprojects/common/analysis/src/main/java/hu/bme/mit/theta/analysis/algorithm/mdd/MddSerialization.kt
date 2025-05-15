@@ -18,14 +18,13 @@ package hu.bme.mit.theta.analysis.algorithm.mdd
 
 import hu.bme.mit.delta.java.mdd.MddHandle
 import hu.bme.mit.delta.java.mdd.MddVariable
-import hu.bme.mit.theta.analysis.algorithm.mdd.expressionnode.LitExprConverter
 import hu.bme.mit.theta.core.decl.Decl
 import java.io.File
 import java.util.*
 
 class Assignment {
     var mddVariable: MddVariable
-    var value: Int
+    var value: Any
 
     constructor(mddVariable: MddVariable, value: Int) {
         this.mddVariable = mddVariable
@@ -33,17 +32,17 @@ class Assignment {
     }
 }
 
-fun toValuation(assignments: Stack<Assignment>): Map<MddVariable, Int> {
-    val map = mutableMapOf<MddVariable, Int>()
+fun toValuation(assignments: Stack<Assignment>): Map<MddVariable, Any> {
+    val map = mutableMapOf<MddVariable, Any>()
     assignments.stream().forEach { ass ->
         map.put(ass.mddVariable, ass.value)
     }
     return map
 }
 
-fun collect(node: MddHandle): Set<Map<MddVariable, Int>> {
+fun collect(node: MddHandle): Set<Map<MddVariable, Any>> {
     val assignments = Stack<Assignment>()
-    val valuations = mutableSetOf<Map<MddVariable, Int>>()
+    val valuations = mutableSetOf<Map<MddVariable, Any>>()
 
     collect(node, assignments, valuations)
 
@@ -53,7 +52,7 @@ fun collect(node: MddHandle): Set<Map<MddVariable, Int>> {
 fun collect(
     node: MddHandle,
     assignments: Stack<Assignment>,
-    valuations: MutableSet<Map<MddVariable, Int>>) {
+    valuations: MutableSet<Map<MddVariable, Any>>) {
 
     if (node.isTerminal) {
         valuations.add(toValuation(assignments))
@@ -87,10 +86,10 @@ fun escapeCsv(value: String): String {
 }
 
 @JvmOverloads
-fun serialyzeValuations(valuations: Set<Map<MddVariable, Int>>, fileName: String = "output.csv") {
+fun serializeValuations(valuations: Set<Map<MddVariable, Any>>, fileName: String = "output.csv") {
     if (valuations.isEmpty()) return
 
-    val variables = valuations.first().keys.sortedBy { (it.getTraceInfo() as Decl<*>).name }
+    val variables = valuations.first().keys.sortedBy { (it.traceInfo as Decl<*>).name }
 
     val builder = StringBuilder()
 
@@ -98,7 +97,7 @@ fun serialyzeValuations(valuations: Set<Map<MddVariable, Int>>, fileName: String
     builder.append("\n")
 
     for (valuation in valuations) {
-        val row = variables.map { LitExprConverter.toLitExpr(valuation[it]!!, (it.getTraceInfo() as Decl<*>).type)?.toString() ?: "" }
+        val row = variables.map { valuation[it]?.toString() ?: "" }
         builder.append(row.joinToString(",") { escapeCsv(it) })
         builder.append("\n")
     }

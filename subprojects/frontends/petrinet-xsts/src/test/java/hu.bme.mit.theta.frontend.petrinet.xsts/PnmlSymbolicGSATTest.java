@@ -56,7 +56,7 @@ public class PnmlSymbolicGSATTest {
             status = checker.check();
             var statespace = status.getProof().getMdd();
             var valuations = MddSerializationKt.collect(statespace);
-            MddSerializationKt.serialyzeValuations(valuations);
+            MddSerializationKt.serializeValuations(valuations);
             logger.mainStep(
                     "State space size: "
                             + ((MddAnalysisStatistics) status.getStats().get())
